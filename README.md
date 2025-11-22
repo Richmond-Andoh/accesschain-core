@@ -306,8 +306,3 @@ AccessChain's sustainable business model focuses on long-term impact while ensur
 - 20% to community rewards and incentives
 - 10% to operational costs
 
-### Impact Metrics
-- Number of beneficiaries supported
-- Success rate of grant applications
-- Community engagement levels
-- Platform adoption metrics
