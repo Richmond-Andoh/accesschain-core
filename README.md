@@ -301,8 +301,5 @@ AccessChain's sustainable business model focuses on long-term impact while ensur
    - Custom solution development
    - Enterprise licensing
 
-### Sustainability
-- 70% of platform fees allocated to development
-- 20% to community rewards and incentives
-- 10% to operational costs
+
 
