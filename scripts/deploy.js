@@ -1,8 +1,10 @@
 const hre = require("hardhat");
 
 async function main() {
-    const [deployer] = await hre.ethers.getSigners();
-    console.log("Deploying contracts with the account:", deployer.address);
+    const provider = hre.ethers.provider;
+    const wallet = new hre.ethers.Wallet(process.env.SONIC_PRIVATE_KEY, provider);
+    const deployer = await wallet.getAddress();
+    console.log("Deploying contracts with the account:", deployer);
 
     // Deploy NGOAccessControl first since it's used by RequestRegistry
     const NGOAccessControl = await hre.ethers.getContractFactory("NGOAccessControl");

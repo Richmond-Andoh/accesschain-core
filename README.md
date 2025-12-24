@@ -10,7 +10,25 @@ AccessChain is a blockchain-based platform that connects people with disabilitie
 ✅ Community voting on grant applications
 ✅ ACCESS token integration for governance
 ✅ Accessibility-first design for all users
+✅ KRNL-powered decentralized identity verification
+✅ KRNL-ACCESS token bridge integration
 
+## Disability Verification
+AccessChain provides a comprehensive system for disability verification and resource distribution powered by KRNL's decentralized identity infrastructure.
+
+### KRNL Identity Integration
+- **Decentralized Identity (DID)**: Users' disability verifications are stored as DIDs on KRNL's network
+- **Privacy-First Verification**: Zero-knowledge proofs ensure privacy while maintaining verifiability
+- **Tamper-Proof Documentation**: All medical documents are cryptographically secured
+- **Multi-Factor Authentication**: Enhanced security for sensitive operations
+- **Cross-Chain Verification**: Disability credentials can be verified across different blockchain networks
+
+### Document Verification Flow
+1. User submits disability documentation
+2. KRNL's identity service validates the documents
+3. Verified credentials are stored as DIDs
+4. Zero-knowledge proofs enable private verification
+=======
 # System Architecture
 
 ## High-Level Architecture Diagram
@@ -185,9 +203,7 @@ This integration transforms AccessChain into a **fully verifiable, trustless gra
 ## Project Structure
 - `contracts/`: Smart contracts for disability verification, grant management, and token functionality
 - `accessFront/`: React-based frontend application with Chakra UI components
-  - `src/config/krnl.js`: KRNL client configuration
-  - `src/hooks/useKrnl.js`: KRNL integration hooks
-  - `src/context/AccessibilityContext.jsx`: KRNL state management
+  - `src/context/AccessibilityContext.jsx`: Accessibility state management
 - `scripts/`: Deployment and configuration scripts
 - `test/`: Contract test files
 - `assets/`: Design assets and images
@@ -198,8 +214,10 @@ This integration transforms AccessChain into a **fully verifiable, trustless gra
 - React + Chakra UI
 - Wagmi v2 / Ethers.js
 - MetaMask integration
-- Sonic Blaze Testnet
-- KRNL Kernel Technology
+- Sonic Blast Testnet
+- KRNL SDK v2.0
+- KRNL Identity Service
+- KRNL Token Bridge
 
 ## How to Run Locally
 1. Clone the repo
@@ -221,13 +239,7 @@ npm install
    - Chain ID: 57054
    - Currency Symbol: SONIC
 
-4. Configure KRNL Environment Variables
-```env
-REACT_APP_KRNL_API_KEY=your_api_key
-REACT_APP_KRNL_ENVIRONMENT=development
-```
-
-5. Start the development server
+4. Start the development server
 ```shell
 cd accessFront
 npm run dev

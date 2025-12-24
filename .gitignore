@@ -3,6 +3,11 @@ node_modules/
 .pnp/
 .pnp.js
 
+# KRNL Integration
+.env.krnl
+.krnl-cache/
+krnl-debug.log
+
 # Testing
 coverage/
 
@@ -32,11 +37,6 @@ yarn-error.log*
 *.sln
 *.sw?
 
-# Keep only KRNL-related files
-!accessFront/src/config/krnl.js
-!accessFront/src/hooks/useKrnl.js
-!accessFront/src/context/AccessibilityContext.jsx
-!contracts/KrnlEnabled.sol
 
 # Hardhat files
 /cache
