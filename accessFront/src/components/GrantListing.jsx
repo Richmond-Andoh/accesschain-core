@@ -1,16 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ethers } from 'ethers';
-import { useAccount, useContractRead, useWalletClient, usePublicClient } from 'wagmi';
+import { formatEther } from 'viem';
 import { 
   Box, 
   Container, 
-  Heading, 
   Text, 
   Button, 
   SimpleGrid, 
   VStack, 
-  HStack,
   Card,
   CardHeader,
   CardBody,
@@ -21,502 +18,352 @@ import {
   Tab, 
   TabPanels, 
   TabPanel,
-  Divider,
-  Icon,
   useColorModeValue,
   Flex,
   Skeleton,
-  Center,
   useToast,
   Tooltip,
-  Avatar
+  Avatar,
+  Heading,
+  HStack,
+  Icon
 } from '@chakra-ui/react';
-import { AddIcon, ChevronRightIcon, TimeIcon, InfoIcon, CheckIcon, WarningIcon } from '@chakra-ui/icons';
-import { CONTRACT_ADDRESSES, CONTRACT_ABIS } from '../config/contracts';
+import { AddIcon, TimeIcon, InfoIcon, CheckIcon, ChevronRightIcon } from '@chakra-ui/icons';
+import { useGrantManagement } from '../hooks/useGrantManagement';
 
 const GrantListing = () => {
   const navigate = useNavigate();
   const toast = useToast();
-  const { address } = useAccount();
-  const publicClient = usePublicClient();
-  const { data: walletClient } = useWalletClient();
-  
-  const [loading, setLoading] = useState(true);
-  const [grants, setGrants] = useState([]);
-  const [isNGO, setIsNGO] = useState(false);
   const [tabIndex, setTabIndex] = useState(0);
+  
+  // Use the enhanced grant management hook
+  const {
+    grants,
+    loading,
+    error,
+    isNGO,
+    isConnected,
+    isCorrectNetwork,
+    transactionStatus,
+    createGrant,
+    applyForGrant,
+    approveApplication,
+    completeMilestone,
+    refetchGrants,
+  } = useGrantManagement();
   
   // Color mode values for UI
   const cardBg = useColorModeValue('white', 'gray.700');
+  const textColor = useColorModeValue('gray.600', 'gray.300');
+  const borderColor = useColorModeValue('gray.200', 'gray.600');
   const cardBorder = useColorModeValue('gray.200', 'gray.600');
   const headerBg = useColorModeValue('blue.50', 'blue.900');
-  const expiredHeaderBg = useColorModeValue('gray.50', 'gray.800');
   const activeBadgeBg = useColorModeValue('green.100', 'green.800');
   const expiredBadgeBg = useColorModeValue('gray.100', 'gray.700');
   const ownedBadgeBg = useColorModeValue('purple.100', 'purple.800');
 
-  // We'll use these functions instead of the deprecated useContract hook
-  const readGrantContract = async (functionName, args = []) => {
-    try {
-      return await publicClient.readContract({
-        address: CONTRACT_ADDRESSES.accessGrant,
-        abi: CONTRACT_ABIS.accessGrant,
-        functionName,
-        args
+  // Handle grant application
+  const handleApplyForGrant = async (grantId, proposal, amount) => {
+    const result = await applyForGrant(grantId, proposal, amount);
+    if (result?.success) {
+      toast({
+        title: 'Application submitted',
+        description: 'Your application has been submitted successfully',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
       });
-    } catch (error) {
-      console.error(`Error reading contract function ${functionName}:`, error);
-      throw error;
-    }
-  };
-
-  const readNGOContract = async (functionName, args = []) => {
-    try {
-      return await publicClient.readContract({
-        address: CONTRACT_ADDRESSES.ngoAccessControl,
-        abi: CONTRACT_ABIS.ngoAccessControl,
-        functionName,
-        args
+      refetchGrants();
+    } else {
+      toast({
+        title: 'Error',
+        description: result?.error || 'Failed to submit application',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
       });
-    } catch (error) {
-      console.error(`Error reading contract function ${functionName}:`, error);
-      throw error;
     }
   };
 
-  useEffect(() => {
-    const fetchGrants = async () => {
-      try {
-        setLoading(true);
-        
-        // Get all grants
-        const grantsData = await readGrantContract('getGrants');
-        
-        // Format grant data
-        const formattedGrants = grantsData.map(grant => ({
-          id: Number(grant.id),
-          title: grant.title,
-          description: grant.description,
-          amount: ethers.formatEther(grant.amount.toString()),
-          deadline: new Date(Number(grant.deadline) * 1000).toLocaleDateString(),
-          deadlineTimestamp: Number(grant.deadline),
-          ngo: grant.ngo,
-          isActive: grant.isActive,
-          isExpired: Number(grant.deadline) < (Date.now() / 1000),
-          isOwnedByCurrentUser: address && grant.ngo.toLowerCase() === address.toLowerCase(),
-          timeLeft: calculateTimeLeft(Number(grant.deadline))
-        }));
-        
-        setGrants(formattedGrants);
-        
-        // Check if the current user is an NGO
-        if (address) {
-          const ngoStatus = await readNGOContract('isAuthorizedNGO', [address]);
-          setIsNGO(ngoStatus);
-        }
-      } catch (error) {
-        console.error('Error fetching grants:', error);
-        toast({
-          title: "Failed to load grants",
-          description: error.message || "Could not retrieve grants data",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-          position: "top-right"
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Calculate time left for a deadline
-    const calculateTimeLeft = (deadline) => {
-      const now = Math.floor(Date.now() / 1000);
-      const timeLeftSeconds = deadline - now;
-      
-      if (timeLeftSeconds <= 0) return 'Expired';
-      
-      const days = Math.floor(timeLeftSeconds / (60 * 60 * 24));
-      const hours = Math.floor((timeLeftSeconds % (60 * 60 * 24)) / (60 * 60));
-      
-      if (days > 0) {
-        return `${days} day${days !== 1 ? 's' : ''} left`;
-      } else if (hours > 0) {
-        return `${hours} hour${hours !== 1 ? 's' : ''} left`;
-      } else {
-        const minutes = Math.floor((timeLeftSeconds % (60 * 60)) / 60);
-        return `${minutes} minute${minutes !== 1 ? 's' : ''} left`;
-      }
-    };
-
-    if (publicClient) {
-      fetchGrants();
-      
-      // Set up event watch for new grants
-      try {
-        const unwatch = publicClient.watchContractEvent({
-          address: CONTRACT_ADDRESSES.accessGrant,
-          abi: CONTRACT_ABIS.accessGrant,
-          eventName: 'GrantCreated',
-          onLogs: () => {
-            fetchGrants();
-            toast({
-              title: "New grant created!",
-              description: "The grants list has been updated",
-              status: "info",
-              duration: 5000,
-              isClosable: true,
-              position: "top-right"
-            });
-          }
-        });
-        
-        return () => {
-          unwatch?.();
-        };
-      } catch (error) {
-        console.error('Error setting up event watch:', error);
-      }
-    }
-  }, [publicClient, address, toast]);
-
-  const handleCreateGrant = () => {
-    navigate('/grants/create');
-  };
-
-  const handleViewGrant = (grantId) => {
-    navigate(`/grants/${grantId}`);
-  };
-
-  // Filter grants based on selected tab
-  const activeGrants = grants.filter(grant => grant.isActive && !grant.isExpired);
-  const expiredGrants = grants.filter(grant => grant.isExpired);
-  const userGrants = grants.filter(grant => grant.isOwnedByCurrentUser);
-  
-  // Get the grants to display based on current tab
-  const getDisplayedGrants = () => {
-    switch (tabIndex) {
-      case 0: return grants; // All grants
-      case 1: return activeGrants; // Active grants
-      case 2: return expiredGrants; // Expired grants
-      case 3: return userGrants; // My grants (if NGO)
-      default: return grants;
+  // Handle grant approval
+  const handleApproveApplication = async (grantId, applicationId) => {
+    const result = await approveApplication(grantId, applicationId);
+    if (result?.success) {
+      toast({
+        title: 'Application approved',
+        description: 'The application has been approved successfully',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+      refetchGrants();
     }
   };
 
-  // Grant Card Component
-  const GrantCard = ({ grant }) => {
-    return (
-      <Card 
-        direction="column"
-        overflow="hidden"
-        variant="outline"
-        bg={cardBg}
-        borderColor={cardBorder}
-        borderRadius="xl"
-        boxShadow="md"
-        transition="all 0.3s"
-        _hover={{ transform: 'translateY(-4px)', boxShadow: 'lg' }}
-        cursor="pointer"
-        onClick={() => handleViewGrant(grant.id)}
-      >
-        <Box h="4px" bg={grant.isExpired ? 'gray.400' : (grant.isOwnedByCurrentUser ? 'purple.400' : 'blue.400')} />
-        
-        <CardHeader pb={2}>
-          <Flex justifyContent="space-between" alignItems="center" mb={2}>
-            <Flex gap={2}>
-              {grant.isActive && !grant.isExpired ? (
-                <Badge bg={activeBadgeBg} color="green.800" px={2} py={1} borderRadius="full" display="flex" alignItems="center">
-                  <Box w="8px" h="8px" borderRadius="full" bg="green.500" mr={1} />
-                  Active
-                </Badge>
-              ) : (
-                <Badge bg={expiredBadgeBg} color="gray.600" px={2} py={1} borderRadius="full" display="flex" alignItems="center">
-                  <Box w="8px" h="8px" borderRadius="full" bg="gray.500" mr={1} />
-                  Expired
-                </Badge>
-              )}
-              
-              {grant.isOwnedByCurrentUser && (
-                <Badge bg={ownedBadgeBg} color="purple.800" px={2} py={1} borderRadius="full" display="flex" alignItems="center">
-                  <Icon as={CheckIcon} mr={1} boxSize="10px" />
-                  Your Grant
-                </Badge>
-              )}
-            </Flex>
-            
-            <Text fontWeight="bold" color="gray.500" fontSize="sm">
-              ID: {grant.id}
-            </Text>
-          </Flex>
-          
-          <Heading size="md" noOfLines={2}>
-            {grant.title}
-          </Heading>
-        </CardHeader>
-        
-        <CardBody py={2}>
-          <Text fontSize="sm" color="gray.600" noOfLines={3} mb={4}>
-            {grant.description}
-          </Text>
-          
-          <VStack align="stretch" spacing={2}>
-            <Flex justify="space-between">
-              <Text fontSize="sm" color="gray.500">Amount:</Text>
-              <Text fontSize="sm" fontWeight="bold">{grant.amount} SONIC</Text>
-            </Flex>
-            
-            <Flex justify="space-between">
-              <Text fontSize="sm" color="gray.500">Deadline:</Text>
-              <Text fontSize="sm">{grant.deadline}</Text>
-            </Flex>
-            
-            {!grant.isExpired && (
-              <Flex justify="space-between" color="blue.500">
-                <Text fontSize="sm" display="flex" alignItems="center">
-                  <TimeIcon mr={1} boxSize="12px" />
-                  Remaining:
-                </Text>
-                <Text fontSize="sm" fontWeight="bold">{grant.timeLeft}</Text>
-              </Flex>
-            )}
-          </VStack>
-        </CardBody>
-        
-        <CardFooter pt={0}>
-          <Flex justify="space-between" w="100%" align="center">
-            <Tooltip label={`Grant by ${grant.ngo}`} placement="bottom">
-              <HStack spacing={1}>
-                <Avatar size="xs" bg="blue.500" />
-                <Text fontSize="xs" color="gray.500">
-                  {`${grant.ngo.substring(0, 6)}...${grant.ngo.substring(grant.ngo.length - 4)}`}
-                </Text>
-              </HStack>
-            </Tooltip>
-            
-            <Button
-              size="sm"
-              rightIcon={<ChevronRightIcon />}
-              variant="ghost"
-              colorScheme="blue"
-            >
-              View Details
-            </Button>
-          </Flex>
-        </CardFooter>
-      </Card>
-    );
+  // Handle milestone completion
+  const handleCompleteMilestone = async (grantId, milestoneIndex) => {
+    const result = await completeMilestone(grantId, milestoneIndex);
+    if (result?.success) {
+      toast({
+        title: 'Milestone completed',
+        description: 'The milestone has been marked as completed',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+      refetchGrants();
+    }
   };
 
-  // Loading skeleton
+  // Format date from timestamp
+  const formatDate = (timestamp) => {
+    if (!timestamp) return 'N/A';
+    return new Date(Number(timestamp) * 1000).toLocaleDateString();
+  };
+
+  // Calculate time left until deadline
+  const calculateTimeLeft = (deadline) => {
+    if (!deadline) return 'N/A';
+    const now = Math.floor(Date.now() / 1000);
+    const timeLeftSeconds = Number(deadline) - now;
+    
+    if (timeLeftSeconds <= 0) return 'Expired';
+    
+    const days = Math.floor(timeLeftSeconds / (60 * 60 * 24));
+    const hours = Math.floor((timeLeftSeconds % (60 * 60 * 24)) / (60 * 60));
+    
+    if (days > 0) return `${days} day${days !== 1 ? 's' : ''} left`;
+    if (hours > 0) return `${hours} hour${hours !== 1 ? 's' : ''} left`;
+    
+    const minutes = Math.floor((timeLeftSeconds % (60 * 60)) / 60);
+    return `${minutes} minute${minutes !== 1 ? 's' : ''} left`;
+  };
+
+  // Filter grants based on tab selection
+  const filteredGrants = grants.filter(grant => {
+    if (tabIndex === 0) return true; // All grants
+    if (tabIndex === 1) return grant.status === 0; // Open
+    if (tabIndex === 2) return grant.status === 1; // In Progress
+    if (tabIndex === 3) return grant.status === 2; // Completed
+    return true;
+  });
+
+  // Loading state
   if (loading) {
     return (
-      <Container maxW="6xl" py={8}>
-        <Flex justifyContent="space-between" alignItems="center" mb={6}>
-          <Box>
-            <Skeleton height="36px" width="200px" mb={2} />
-            <Skeleton height="20px" width="300px" />
-          </Box>
-          <Skeleton height="40px" width="150px" />
-        </Flex>
-        
-        <Skeleton height="40px" mb={6} />
-        
-        <SimpleGrid columns={[1, null, 2, 3]} spacing={6}>
-          {[1, 2, 3, 4, 5, 6].map(i => (
-            <Box key={i}>
-              <Skeleton height="200px" borderRadius="lg" />
-            </Box>
+      <Container maxW="7xl" py={8}>
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+          {[1, 2, 3].map((i) => (
+            <Card key={i} bg={cardBg} borderRadius="lg" overflow="hidden" boxShadow="md">
+              <Skeleton height="200px" />
+              <CardBody>
+                <Skeleton height="24px" mb={4} />
+                <Skeleton height="16px" mb={2} />
+                <Skeleton height="16px" width="80%" />
+              </CardBody>
+              <CardFooter>
+                <Skeleton height="40px" width="100%" />
+              </CardFooter>
+            </Card>
           ))}
         </SimpleGrid>
       </Container>
     );
   }
 
-  // Empty state display
-  const EmptyState = ({ type }) => {
-    let title, description;
-    
-    switch (type) {
-      case 'active':
-        title = 'No Active Grants';
-        description = 'There are currently no active grant opportunities available.';
-        break;
-      case 'expired':
-        title = 'No Expired Grants';
-        description = 'There are no expired grants in the system.';
-        break;
-      case 'mine':
-        title = 'No Grants Created';
-        description = 'You haven\'t created any grants yet.';
-        break;
-      default:
-        title = 'No Grants Available';
-        description = 'There are currently no grants in the system.';
-    }
-    
+  // Error state
+  if (error) {
     return (
-      <Center py={12} flexDirection="column" textAlign="center" bg="gray.50" borderRadius="xl" border="1px dashed" borderColor="gray.200">
-        <Icon as={InfoIcon} boxSize={12} color="gray.400" mb={4} />
-        <Heading size="md" mb={2}>{title}</Heading>
-        <Text color="gray.600" mb={6}>{description}</Text>
-        
-        {isNGO && type !== 'expired' && (
-          <Button 
-            colorScheme="blue" 
+      <Container maxW="7xl" py={8} textAlign="center">
+        <Text color="red.500" fontSize="lg" mb={4}>
+          Error loading grants: {error}
+        </Text>
+        <Button colorScheme="blue" onClick={refetchGrants}>
+          Retry
+        </Button>
+      </Container>
+    );
+  }
+
+  // Empty state
+  if (grants.length === 0) {
+    return (
+      <Container maxW="7xl" py={8} textAlign="center">
+        <Text fontSize="lg" color={textColor} mb={4}>
+          No grants available at the moment.
+        </Text>
+        {isNGO && (
+          <Button
             leftIcon={<AddIcon />}
-            onClick={handleCreateGrant}
+            colorScheme="blue"
+            onClick={() => navigate('/grants/create')}
           >
-            Create Your First Grant
+            Create Grant
           </Button>
         )}
-      </Center>
+      </Container>
+    );
+  }
+
+  // Grant Card Component
+  const GrantCard = ({ grant }) => {
+    const isExpired = grant.deadline && Number(grant.deadline) < Math.floor(Date.now() / 1000);
+    const isOwnedByCurrentUser = grant.owner && grant.owner.toLowerCase() === grant.currentUser?.toLowerCase();
+    
+    return (
+      <Card 
+        bg={cardBg}
+        borderRadius="lg"
+        overflow="hidden"
+        boxShadow="md"
+        borderWidth="1px"
+        borderColor={borderColor}
+        _hover={{ transform: 'translateY(-4px)', boxShadow: 'lg' }}
+        transition="all 0.2s"
+      >
+        <Box h="4px" bg={isExpired ? 'gray.400' : (isOwnedByCurrentUser ? 'purple.400' : 'blue.400')} />
+        
+        <CardHeader pb={2}>
+          <Flex justifyContent="space-between" alignItems="flex-start" mb={2}>
+            <Box flex="1">
+              <Heading size="md" noOfLines={2} mb={2}>
+                {grant.title || 'Untitled Grant'}
+              </Heading>
+              
+              <Flex gap={2} flexWrap="wrap">
+                <Badge 
+                  colorScheme={isExpired ? 'gray' : 'green'}
+                  variant="subtle"
+                  px={2}
+                  py={0.5}
+                  borderRadius="full"
+                >
+                  {isExpired ? 'Expired' : 'Active'}
+                </Badge>
+                
+                {isOwnedByCurrentUser && (
+                  <Badge colorScheme="purple" variant="subtle" px={2} py={0.5} borderRadius="full">
+                    Your Grant
+                  </Badge>
+                )}
+                
+                <Badge colorScheme="blue" variant="outline" px={2} py={0.5} borderRadius="full">
+                  {formatEther(grant.totalAmount || '0')} TOKENS
+                </Badge>
+              </Flex>
+            </Box>
+            
+            <Badge colorScheme="gray" variant="outline" px={2} py={0.5} borderRadius="full">
+              ID: {grant.id}
+            </Badge>
+          </Flex>
+        </CardHeader>
+        
+        <CardBody py={2}>
+          <Text fontSize="sm" color={textColor} noOfLines={3} mb={4}>
+            {grant.description || 'No description available'}
+          </Text>
+          
+          <VStack align="stretch" spacing={2}>
+            <HStack>
+              <Icon as={TimeIcon} color="blue.500" boxSize={4} />
+              <Text fontSize="sm">
+                {isExpired ? 'Expired on ' : 'Deadline: '}
+                {formatDate(grant.deadline)}
+              </Text>
+            </HStack>
+            
+            {!isExpired && (
+              <HStack>
+                <Icon as={InfoIcon} color="blue.500" boxSize={4} />
+                <Text fontSize="sm" fontWeight="medium">
+                  {calculateTimeLeft(grant.deadline)}
+                </Text>
+              </HStack>
+            )}
+            
+            {grant.milestones && grant.milestones.length > 0 && (
+              <HStack>
+                <Icon as={CheckIcon} color="blue.500" boxSize={4} />
+                <Text fontSize="sm">
+                  {grant.milestones.filter(m => m.completed).length} of {grant.milestones.length} milestones completed
+                </Text>
+              </HStack>
+            )}
+          </VStack>
+        </CardBody>
+        
+        <CardFooter pt={0} borderTopWidth="1px" borderColor={borderColor}>
+          <Button
+            rightIcon={<ChevronRightIcon />}
+            colorScheme="blue"
+            variant="outline"
+            size="sm"
+            w="full"
+            onClick={() => navigate(`/grants/${grant.id}`)}
+          >
+            View Details
+          </Button>
+        </CardFooter>
+      </Card>
     );
   };
 
   return (
-    <Container maxW="6xl" py={8}>
-      {/* Header Section */}
-      <Flex 
-        direction={["column", null, "row"]} 
-        justify="space-between" 
-        align={["flex-start", null, "center"]}
-        mb={6}
-        gap={4}
-      >
-        <Box>
-          <Heading as="h1" size="xl" mb={2}>
-            Grant Opportunities
-          </Heading>
-          <Text color="gray.600">
-            Browse funding opportunities for initiatives that make a difference
-          </Text>
-        </Box>
-        
-        {isNGO && (
-          <Button
-            colorScheme="blue"
-            leftIcon={<AddIcon />}
-            onClick={handleCreateGrant}
-            size="lg"
-            boxShadow="md"
-            _hover={{ boxShadow: 'lg', transform: 'translateY(-2px)' }}
-            transition="all 0.3s"
-          >
-            Create New Grant
-          </Button>
-        )}
-      </Flex>
-      
-      {/* Tabs */}
-      <Tabs 
-        colorScheme="blue" 
-        mt={4} 
-        mb={6}
-        onChange={(index) => setTabIndex(index)}
-        variant="soft-rounded"
-      >
-        <TabList>
+    <Container maxW="7xl" py={8}>
+      <Tabs variant="enclosed" onChange={(index) => setTabIndex(index)}>
+        <TabList mb={6}>
           <Tab>All Grants</Tab>
-          <Tab>
-            Active
-            {activeGrants.length > 0 && (
-              <Badge ml={2} colorScheme="green" borderRadius="full" px={2}>
-                {activeGrants.length}
-              </Badge>
-            )}
-          </Tab>
-          <Tab>
-            Expired
-            {expiredGrants.length > 0 && (
-              <Badge ml={2} colorScheme="gray" borderRadius="full" px={2}>
-                {expiredGrants.length}
-              </Badge>
-            )}
-          </Tab>
-          {isNGO && (
-            <Tab>
-              My Grants
-              {userGrants.length > 0 && (
-                <Badge ml={2} colorScheme="purple" borderRadius="full" px={2}>
-                  {userGrants.length}
-                </Badge>
-              )}
-            </Tab>
-          )}
+          <Tab>Open</Tab>
+          <Tab>In Progress</Tab>
+          <Tab>Completed</Tab>
         </TabList>
-        
-        <TabPanels mt={4}>
-          {/* All Grants Tab */}
+
+        <TabPanels>
           <TabPanel px={0}>
-            {grants.length === 0 ? (
-              <EmptyState type="all" />
+            {filteredGrants.length === 0 ? (
+              <Box textAlign="center" py={12} bg={headerBg} borderRadius="lg">
+                <Text fontSize="lg" color={textColor} mb={4}>
+                  No grants found in this category.
+                </Text>
+                {isNGO && tabIndex === 1 && (
+                  <Button
+                    leftIcon={<AddIcon />}
+                    colorScheme="blue"
+                    onClick={() => navigate('/grants/create')}
+                  >
+                    Create Grant
+                  </Button>
+                )}
+              </Box>
             ) : (
-              <SimpleGrid columns={[1, null, 2, 3]} spacing={6}>
-                {grants.map(grant => (
+              <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+                {filteredGrants.map((grant) => (
                   <GrantCard key={grant.id} grant={grant} />
                 ))}
               </SimpleGrid>
             )}
           </TabPanel>
-          
-          {/* Active Grants Tab */}
-          <TabPanel px={0}>
-            {activeGrants.length === 0 ? (
-              <EmptyState type="active" />
-            ) : (
-              <SimpleGrid columns={[1, null, 2, 3]} spacing={6}>
-                {activeGrants.map(grant => (
-                  <GrantCard key={grant.id} grant={grant} />
-                ))}
-              </SimpleGrid>
-            )}
-          </TabPanel>
-          
-          {/* Expired Grants Tab */}
-          <TabPanel px={0}>
-            {expiredGrants.length === 0 ? (
-              <EmptyState type="expired" />
-            ) : (
-              <SimpleGrid columns={[1, null, 2, 3]} spacing={6}>
-                {expiredGrants.map(grant => (
-                  <GrantCard key={grant.id} grant={grant} />
-                ))}
-              </SimpleGrid>
-            )}
-          </TabPanel>
-          
-          {/* My Grants Tab - Only visible if user is NGO */}
-          {isNGO && (
-            <TabPanel px={0}>
-              {userGrants.length === 0 ? (
-                <EmptyState type="mine" />
-              ) : (
-                <SimpleGrid columns={[1, null, 2, 3]} spacing={6}>
-                  {userGrants.map(grant => (
-                    <GrantCard key={grant.id} grant={grant} />
-                  ))}
-                </SimpleGrid>
-              )}
-            </TabPanel>
-          )}
         </TabPanels>
       </Tabs>
       
-      {/* Create Grant CTA */}
-      {isNGO && grants.length > 0 && (
-        <Box mt={12} textAlign="center">
-          <Button
-            colorScheme="blue"
-            size="lg"
-            leftIcon={<AddIcon />}
-            onClick={handleCreateGrant}
-            boxShadow="md"
-            _hover={{ boxShadow: 'lg', transform: 'translateY(-2px)' }}
-            transition="all 0.3s"
-          >
-            Create Another Grant
-          </Button>
+      {/* Create Grant Button (for NGOs) */}
+      {isNGO && (
+        <Box position="fixed" bottom={8} right={8}>
+          <Tooltip label="Create a new grant opportunity" placement="left">
+            <Button
+              colorScheme="blue"
+              size="lg"
+              borderRadius="full"
+              boxShadow="lg"
+              leftIcon={<AddIcon />}
+              onClick={() => navigate('/grants/create')}
+              isLoading={transactionStatus.isLoading}
+              loadingText="Creating..."
+            >
+              Create Grant
+            </Button>
+          </Tooltip>
         </Box>
       )}
     </Container>

@@ -1,28 +1,29 @@
 // Contract addresses and ABIs for the Access Chain Core contracts
 export const CONTRACT_ADDRESSES = {
-    NGOAccessControl: "0x16788aD7d27A8e244BEbF1cdc3906b43f7f66f80",
-    RequestRegistry: "0xC880064656D06317A55EC3cD9036D8CE8E217497",
-    AccessGrant: "0x1eA07a7e5Fc838146E9de9F801d50f3F896a6587",
-    AccessToken: "0xd4F4B93aD2Fb9a543a74a9C5aad334cAd47B5a4B",
-    AccessNFT: "0x9C270EA210E741B550bF822625694D0f64c71492",
-    AccessDAO: "0x0081FB567ae0851f8fa47E39c6e3882e9f91e10F",
+    // Main contracts
+    NGOAccessControl: "0xCe69C39257a15Db211D5e8ef90CC57f37581864E",
+    RequestRegistry: "0x1B2bA62E084280320318bb0825544e30fd7EB20C",
+    AccessGrant: "0x0495032F128d1C47474109fa0880C0b55eF08b4E",
+    AccessToken: "0x1fb4c0DAc53fEEf34eea04d94276638089802189",
+    AccessNFT: "0xef220aE4765B15666897Da2f181D5bC8Bc5b30BF",
+    AccessDAO: "0xC24aEDAb8EC4e44C0E69D4F3Dbc4B3e35dc67d5c",
     
     // Aliases with consistent casing for backward compatibility
-    ngoAccessControl: "0x16788aD7d27A8e244BEbF1cdc3906b43f7f66f80",
-    requestRegistry: "0xC880064656D06317A55EC3cD9036D8CE8E217497",
-    accessGrant: "0x1eA07a7e5Fc838146E9de9F801d50f3F896a6587",
-    accessToken: "0xd4F4B93aD2Fb9a543a74a9C5aad334cAd47B5a4B",
-    accessNFT: "0x9C270EA210E741B550bF822625694D0f64c71492",
-    accessDAO: "0x0081FB567ae0851f8fa47E39c6e3882e9f91e10F"
+    ngoAccessControl: "0xCe69C39257a15Db211D5e8ef90CC57f37581864E",
+    requestRegistry: "0x1B2bA62E084280320318bb0825544e30fd7EB20C",
+    accessGrant: "0x0495032F128d1C47474109fa0880C0b55eF08b4E",
+    accessToken: "0x1fb4c0DAc53fEEf34eea04d94276638089802189",
+    accessNFT: "0xef220aE4765B15666897Da2f181D5bC8Bc5b30BF",
+    accessDAO: "0xC24aEDAb8EC4e44C0E69D4F3Dbc4B3e35dc67d5c"
 };
 
 // Individual contract address exports
-export const NGOAccessControlAddress = "0x0Af2AD4D613673c2BDe677b0dA3FeF939C609519";
-export const RequestRegistryAddress = CONTRACT_ADDRESSES.RequestRegistry;
-export const AccessGrantAddress = CONTRACT_ADDRESSES.AccessGrant;
-export const AccessTokenAddress = CONTRACT_ADDRESSES.AccessToken;
-export const AccessNFTAddress = CONTRACT_ADDRESSES.AccessNFT;
-export const AccessDAOAddress = CONTRACT_ADDRESSES.AccessDAO;
+export const NGOAccessControlAddress = "0xCe69C39257a15Db211D5e8ef90CC57f37581864E";
+export const RequestRegistryAddress = "0x1B2bA62E084280320318bb0825544e30fd7EB20C";
+export const AccessGrantAddress = "0x0495032F128d1C47474109fa0880C0b55eF08b4E";
+export const AccessTokenAddress = "0x1fb4c0DAc53fEEf34eea04d94276638089802189";
+export const AccessNFTAddress = "0xef220aE4765B15666897Da2f181D5bC8Bc5b30BF";
+export const AccessDAOAddress = "0xC24aEDAb8EC4e44C0E69D4F3Dbc4B3e35dc67d5c";
 
 // NGO Access Control Contract ABI
 export const NGOAccessControlABI = [

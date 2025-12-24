@@ -10,57 +10,29 @@ AccessChain is a blockchain-based platform that connects people with disabilitie
 ✅ Community voting on grant applications
 ✅ ACCESS token integration for governance
 ✅ Accessibility-first design for all users
+✅ KRNL-powered decentralized identity verification
+✅ KRNL-ACCESS token bridge integration
 
-## KRNL Integration
-AccessChain leverages KRNL kernel technology for enhanced disability verification and resource distribution.
+## Disability Verification
+AccessChain provides a comprehensive system for disability verification and resource distribution powered by KRNL's decentralized identity infrastructure.
 
-### KRNL Screenshots
-![KRNL Integration](./screenshots/krnl1.png)
-![KRNL Features](./screenshots/krnl2.png)
-![KRNL Dashboard](./screenshots/krnl3.png)
+### KRNL Identity Integration
+- **Decentralized Identity (DID)**: Users' disability verifications are stored as DIDs on KRNL's network
+- **Privacy-First Verification**: Zero-knowledge proofs ensure privacy while maintaining verifiability
+- **Tamper-Proof Documentation**: All medical documents are cryptographically secured
+- **Multi-Factor Authentication**: Enhanced security for sensitive operations
+- **Cross-Chain Verification**: Disability credentials can be verified across different blockchain networks
 
-### Current KRNL Implementation
-1. **Disability Verification**
-   - KRNL kernel-based verification system
-   - Secure documentation handling
-   - Real-time verification status updates
-   - Kernel ID and CID tracking
-
-2. **Resource Matching**
-   - AI-powered grant matching
-   - Personalized resource recommendations
-   - Multi-factor matching algorithm
-
-3. **Impact Analysis**
-   - Grant effectiveness tracking
-   - User outcome analysis
-   - Resource utilization metrics
-
-### Future KRNL Implementations
-1. **Advanced Verification**
-   - Batch verification for organizations
-   - Multi-level verification process
-   - Automated documentation verification
-   - Integration with medical providers
-
-2. **Smart Contract Integration**
-   - Grant distribution automation
-   - Token-based rewards
-   - Governance mechanisms
-   - Verification status updates
-
-3. **Enhanced Resource Matching**
-   - Machine learning-based matching
-   - Real-time availability updates
-   - Cross-platform resource sharing
-   - Success rate optimization
+### Document Verification Flow
+1. User submits disability documentation
+2. KRNL's identity service validates the documents
+3. Verified credentials are stored as DIDs
+4. Zero-knowledge proofs enable private verification
 
 ## Project Structure
 - `contracts/`: Smart contracts for disability verification, grant management, and token functionality
 - `accessFront/`: React-based frontend application with Chakra UI components
-  - `src/config/krnl.js`: KRNL client configuration
-  - `src/hooks/useKrnl.js`: KRNL integration hooks
-  - `src/context/AccessibilityContext.jsx`: KRNL state management
+  - `src/context/AccessibilityContext.jsx`: Accessibility state management
 - `scripts/`: Deployment and configuration scripts
 - `test/`: Contract test files
 - `assets/`: Design assets and images
@@ -71,8 +43,10 @@ AccessChain leverages KRNL kernel technology for enhanced disability verificatio
 - React + Chakra UI
 - Wagmi v2 / Ethers.js
 - MetaMask integration
-- Sonic Blaze Testnet
-- KRNL Kernel Technology
+- Sonic Blast Testnet
+- KRNL SDK v2.0
+- KRNL Identity Service
+- KRNL Token Bridge
 
 ## How to Run Locally
 1. Clone the repo
@@ -94,13 +68,7 @@ npm install
    - Chain ID: 57054
    - Currency Symbol: SONIC
 
-4. Configure KRNL Environment Variables
-```env
-REACT_APP_KRNL_API_KEY=your_api_key
-REACT_APP_KRNL_ENVIRONMENT=development
-```
-
-5. Start the development server
+4. Start the development server
 ```shell
 cd accessFront
 npm run dev

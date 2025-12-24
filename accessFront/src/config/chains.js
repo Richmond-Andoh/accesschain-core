@@ -14,8 +14,7 @@ export const sonicBlaze = defineChain({
       http: [
         'https://rpc.blaze.soniclabs.com',
         'https://rpc.sonic.blaze.testnet',
-        'https://blaze.testnet.sonic.explorerswap.com',
-        'https://rpc.krnl.xyz',  // KRNL RPC endpoint
+        'https://blaze.testnet.sonic.explorerswap.com'
       ],
       webSocket: ['wss://ws.blaze.testnet.sonic.explorerswap.com'],
     },
