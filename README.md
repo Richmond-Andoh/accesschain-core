@@ -28,6 +28,177 @@ AccessChain provides a comprehensive system for disability verification and reso
 2. KRNL's identity service validates the documents
 3. Verified credentials are stored as DIDs
 4. Zero-knowledge proofs enable private verification
+=======
+# System Architecture
+
+## High-Level Architecture Diagram
+
+┌─────────────────────────────────────────────────────────────────┐
+│                         FRONTEND LAYER                          │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐ │
+│  │   Web App    │  │ Admin Panel  │  │  Public Explorer     │ │
+│  │   (React)    │  │  (NGO Dash)  │  │  (Grant Browser)     │ │
+│  └──────┬───────┘  └──────┬───────┘  └──────────┬───────────┘ │
+└─────────┼──────────────────┼─────────────────────┼─────────────┘
+          │                  │                     │
+          └──────────────────┴─────────────────────┘
+                             │
+                    ┌────────▼────────┐
+                    │   Web3 Gateway  │
+                    │  (Ethers.js)    │
+                    └────────┬────────┘
+                             │
+          ┏━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━┓
+          ┃                                     ┃
+┌─────────▼──────────┐              ┌──────────▼──────────┐
+│   BACKEND LAYER    │              │   BLOCKCHAIN LAYER  │
+│                    │              │                     │
+│ ┌────────────────┐ │              │ ┌─────────────────┐│
+│ │  REST API      │ │              │ │ Smart Contracts ││
+│ │  (Node.js)     │ │              │ │  - User         ││
+│ └───────┬────────┘ │              │ │  - NGO          ││
+│         │          │              │ │  - Grant        ││
+│ ┌───────▼────────┐ │              │ │  - Token        ││
+│ │  KRNL Client   │─┼──────────┐   │ │  - DAO          ││
+│ │  Integration   │ │          │   │ └─────────────────┘│
+│ └────────────────┘ │          │   │                     │
+│                    │          │   │ ┌─────────────────┐│
+│ ┌────────────────┐ │          │   │ │  Events Index   ││
+│ │  PostgreSQL    │ │          │   │ │  (The Graph)    ││
+│ │  - User data   │ │          │   │ └─────────────────┘│
+│ │  - Cache       │ │          │   └─────────────────────┘
+│ └────────────────┘ │          │
+└────────────────────┘          │
+                                │
+          ┌─────────────────────┼──────────────────────┐
+          │                     │                      │
+┌─────────▼─────────┐  ┌───────▼────────┐  ┌─────────▼────────┐
+│   KRNL PROTOCOL   │  │  IPFS STORAGE  │  │  EXTERNAL APIs   │
+│                   │  │                │  │                  │
+│ ┌───────────────┐ │  │ ┌────────────┐ │  │ ┌──────────────┐ │
+│ │  Verification │ │  │ │ Documents  │ │  │ │ Gov Data     │ │
+│ │  Kernels      │ │  │ │ Metadata   │ │  │ │ NGO Registry │ │
+│ └───────────────┘ │  │ └────────────┘ │  │ └──────────────┘ │
+│                   │  │                │  │                  │
+│ ┌───────────────┐ │  │ ┌────────────┐ │  │ ┌──────────────┐ │
+│ │  PoP Registry │ │  │ │ Arweave    │ │  │ │ Identity     │ │
+│ └───────────────┘ │  │ │ (Archive)  │ │  │ │ Providers    │ │
+└───────────────────┘  │ └────────────┘ │  │ └──────────────┘ │
+                       └────────────────┘  └──────────────────┘
+
+## ⚙️ KRNL Protocol Integration in AccessChain
+
+### 🌍 Overview
+AccessChain is a **blockchain-powered grant management platform** designed to connect people with disabilities to verified funding and resources.  
+To enhance **trust**, **security**, and **transparency** in verification processes, AccessChain integrates the **KRNL Protocol** — a decentralized computing framework that enables **verifiable off-chain computation** and **on-chain proof verification**.
+
+This integration allows AccessChain to validate sensitive or external data (like disability documents or NGO registrations) **without ever exposing private user information**, while maintaining **trustless transparency** for all stakeholders.
+
+---
+
+### 🔑 Why KRNL?
+Traditional smart contracts can’t access or verify real-world data directly.  
+KRNL solves this by introducing **“kernels”** — small, verifiable off-chain programs that perform specific computations and generate **Proofs of Processing (PoPs)**.  
+These proofs are verified on-chain, ensuring that the computation and data source were **authentic and tamper-proof**.
+
+#### For AccessChain, this means:
+- ✅ No need for centralized data validators  
+- ✅ Full auditability of off-chain checks  
+- ✅ Privacy-preserving verification  
+- ✅ Seamless interoperability with government and NGO data sources  
+
+---
+
+### 🧩 What KRNL Handles in AccessChain
+
+| **Use Case** | **Description** | **Benefit** |
+|---------------|-----------------|--------------|
+| **Disability Verification Kernel** | Verifies authenticity of disability certificates through trusted data sources or partner APIs. | Ensures that only verified individuals can access disability support grants. |
+| **NGO Verification Kernel** | Confirms legitimacy of NGOs requesting to create or manage grant campaigns. | Prevents fraud and guarantees donor confidence. |
+| **Grant Utilization Kernel (Future)** | Tracks and verifies that received funds are used for intended purposes using IoT or update data feeds. | Enables end-to-end transparency and trust for donors. |
+
+Each kernel operates as a **modular verification unit**, producing **verifiable proofs** that are submitted to AccessChain’s smart contracts for **final validation**.
+
+---
+
+### 🧠 How It Works
+
+#### Step-by-Step Process
+
+1. **User Action**  
+   A user (beneficiary or NGO) submits verification data through the AccessChain frontend (React app).
+
+2. **Backend Request**  
+   The backend sends this data (or its hash) to a registered KRNL Kernel, such as the *disability-verification kernel*.
+
+3. **Kernel Execution**  
+   The kernel performs off-chain checks — for example, verifying a disability certificate against a trusted database or government API.
+
+4. **Proof Generation**  
+   After validation, the kernel produces a **Proof of Processing (PoP)** — a signed cryptographic proof confirming authenticity of the result.
+
+5. **On-Chain Verification**  
+   The AccessChain smart contract receives the PoP and verifies it using the **KRNL on-chain registry** to ensure it was generated by an approved kernel.
+
+6. **State Update**  
+   Once verified, the smart contract updates the beneficiary or NGO’s verification status permanently **on-chain**.
+
+---
+
+**Technical Workflow**
+
+End-to-End Verification Flow
+
+┌─────────────┐
+│   User      │ Submits verification data
+│(Beneficiary/│ ───────────────────────────┐
+│    NGO)     │                            │
+└─────────────┘                            ▼
+                                  ┌──────────────────┐
+                                  │  AccessChain     │
+                                  │  Frontend (React)│
+                                  └────────┬─────────┘
+                                           │
+                                           ▼
+                                  ┌──────────────────┐
+                                  │  Backend API     │
+                                  │  (Node.js)       │
+                                  └────────┬─────────┘
+                                           │
+                         ┌─────────────────┴─────────────────┐
+                         ▼                                   ▼
+              ┌─────────────────────┐            ┌──────────────────┐
+              │  KRNL Kernel        │            │  Data Sources    │
+              │  - Verification     │◄───────────│  - Gov APIs      │
+              │  - Computation      │            │  - Databases     │
+              │  - PoP Generation   │            │  - Registries    │
+              └──────────┬──────────┘            └──────────────────┘
+                         │
+                         │ Proof of Processing (PoP)
+                         ▼
+              ┌─────────────────────┐
+              │  AccessChain        │
+              │  Smart Contract     │
+              │  - PoP Verification │
+              │  - State Update     │
+              └─────────────────────┘
+                         │
+                         │ Verification Status
+                         ▼
+              ┌─────────────────────┐
+              │  On-Chain Registry  │
+              │  - Verified Users   │
+              │  - NGO Status       │
+              └─────────────────────┘
+
+### 🚀 Summary
+By integrating the **KRNL Protocol**, AccessChain achieves:
+- Transparent and decentralized verification  
+- Privacy-preserving data validation  
+- Secure and auditable interactions between donors, NGOs, and beneficiaries  
+
+This integration transforms AccessChain into a **fully verifiable, trustless grant management ecosystem**, empowering communities and ensuring that every unit of funding reaches its rightful destination.
+
 
 ## Project Structure
 - `contracts/`: Smart contracts for disability verification, grant management, and token functionality
@@ -142,13 +313,5 @@ AccessChain's sustainable business model focuses on long-term impact while ensur
    - Custom solution development
    - Enterprise licensing
 
-### Sustainability
-- 70% of platform fees allocated to development
-- 20% to community rewards and incentives
-- 10% to operational costs
 
-### Impact Metrics
-- Number of beneficiaries supported
-- Success rate of grant applications
-- Community engagement levels
-- Platform adoption metrics
+
