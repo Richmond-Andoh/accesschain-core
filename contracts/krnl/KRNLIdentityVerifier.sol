@@ -45,7 +45,8 @@ contract KRNLIdentityVerifier is Ownable, Pausable {
      * @dev Callback function for KRNL identity service to verify a user
      * @param user Address of the user
      * @param did Decentralized Identity issued by KRNL
-     */
+    */
+    
     function verifyIdentity(address user, bytes32 did) external {
         require(msg.sender == krnlIdentityService, "Only KRNL service can verify");
         require(userDIDs[user] == bytes32(0), "User already verified");
