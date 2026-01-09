@@ -4,6 +4,15 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      'wagmi/connectors/metaMask': '/src/mocks/wagmi.js',
+      'wagmi/connectors/injected': '/src/mocks/wagmi.js',
+      'wagmi/chains': '/src/mocks/wagmi.js',
+      'wagmi/providers/public': '/src/mocks/wagmi.js',
+      'wagmi': '/src/mocks/wagmi.js',
+    },
+  },
   server: {
     port: 3000,
     open: true,

@@ -1,10 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ChakraProvider } from '@chakra-ui/react';
-import { WagmiConfig } from 'wagmi';
-import { config as wagmiConfig } from './config/wagmi';
 import { AccessibilityProvider, useAccessibility } from './context/AccessibilityContext';
-import { KRNLProvider } from './context/KRNLContext';
 import generateTheme from './theme/accessibilityTheme';
 import Layout from './components/Layout/Layout';
 import NGORoute from './components/auth/NGORoute';
@@ -57,88 +54,84 @@ const ThemeWrapper = ({ children }) => {
 const App = () => {
 
   return (
-    <WagmiConfig config={wagmiConfig}>
       <AccessibilityProvider>
-        <KRNLProvider>
-          <ThemeWrapper>
-            <Router>
-              <Layout>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/faq" element={<FAQ />} />
-                  <Route path="/terms" element={<Terms />} />
-                  <Route path="/privacy" element={<Privacy />} />
-                  <Route path="/donor-dashboard" element={<DonorDashboard />} />
-                  <Route path="/demo" element={<DemoDashboard />} />
-                  
-                  {/* NGO Routes - Protected */}
-                  <Route path="/ngo-dashboard" element={
-                    <NGORoute>
-                      <NGODashboardOverview />
-                    </NGORoute>
-                  } />
-                  <Route path="/ngo/:ngoAddress" element={
-                    <NGORoute>
-                      <NGODashboard />
-                    </NGORoute>
-                  } />
-                  <Route path="/ngo/create-grant" element={
-                    <NGORoute>
-                      <CreateSimpleGrantPage />
-                    </NGORoute>
-                  } />
-                  <Route path="/ngo/grants/:grantId/applications" element={
-                    <NGORoute>
-                      <GrantApplications />
-                    </NGORoute>
-                  } />
-                  
-                  {/* Grant Routes */}
-                  <Route path="/grants" element={<GrantsPage />} />
-                  <Route path="/grants/create" element={
-                    <NGORoute>
-                      <CreateSimpleGrantPage />
-                    </NGORoute>
-                  } />
-                  <Route path="/grants/:grantId" element={<GrantDetailPage />} />
-                  <Route path="/grants/:grantId/apply" element={<GrantApplicationPage />} />
-                  <Route path="/grant-request" element={<GrantRequest />} />
-                  <Route path="/grant/:id" element={<GrantDetails />} />
-                  
-                  {/* Admin Routes */}
-                  <Route
-                    path="/admin"
-                    element={
-                      <AdminRoute>
-                        <AdminDashboard />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/ngos"
-                    element={
-                      <AdminRoute>
-                        <NGOManagement />
-                      </AdminRoute>
-                    }
-                  />
-                  
-                  {/* Accessibility Routes */}
-                  <Route path="/accessibility/onboarding" element={<DisabilityOnboarding />} />
-                  <Route path="/accessibility/settings" element={<AccessibilitySettings />} />
-                  
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/token/staking" element={<StakingPage />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Layout>
-            </Router>
-          </ThemeWrapper>
-        </KRNLProvider>
+        <ThemeWrapper>
+          <Router>
+            <Layout>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/donor-dashboard" element={<DonorDashboard />} />
+                <Route path="/demo" element={<DemoDashboard />} />
+                
+                {/* NGO Routes - Protected */}
+                <Route path="/ngo-dashboard" element={
+                  <NGORoute>
+                    <NGODashboardOverview />
+                  </NGORoute>
+                } />
+                <Route path="/ngo/:ngoAddress" element={
+                  <NGORoute>
+                    <NGODashboard />
+                  </NGORoute>
+                } />
+                <Route path="/ngo/create-grant" element={
+                  <NGORoute>
+                    <CreateSimpleGrantPage />
+                  </NGORoute>
+                } />
+                <Route path="/ngo/grants/:grantId/applications" element={
+                  <NGORoute>
+                    <GrantApplications />
+                  </NGORoute>
+                } />
+                
+                {/* Grant Routes */}
+                <Route path="/grants" element={<GrantsPage />} />
+                <Route path="/grants/create" element={
+                  <NGORoute>
+                    <CreateSimpleGrantPage />
+                  </NGORoute>
+                } />
+                <Route path="/grants/:grantId" element={<GrantDetailPage />} />
+                <Route path="/grants/:grantId/apply" element={<GrantApplicationPage />} />
+                <Route path="/grant-request" element={<GrantRequest />} />
+                <Route path="/grant/:id" element={<GrantDetails />} />
+                
+                {/* Admin Routes */}
+                <Route
+                  path="/admin"
+                  element={
+                    <AdminRoute>
+                      <AdminDashboard />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/ngos"
+                  element={
+                    <AdminRoute>
+                      <NGOManagement />
+                    </AdminRoute>
+                  }
+                />
+                
+                {/* Accessibility Routes */}
+                <Route path="/accessibility/onboarding" element={<DisabilityOnboarding />} />
+                <Route path="/accessibility/settings" element={<AccessibilitySettings />} />
+                
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/token/staking" element={<StakingPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Layout>
+          </Router>
+        </ThemeWrapper>
       </AccessibilityProvider>
-    </WagmiConfig>
   );
 };
 
