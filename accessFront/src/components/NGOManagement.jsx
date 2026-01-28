@@ -20,7 +20,7 @@ import {
 } from '@chakra-ui/react';
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
 import { CONTRACT_ADDRESSES, NGOAccessControlABI } from '../config/contracts';
-import { sonicBlaze } from '../config/chains';
+import { sepolia } from 'viem/chains';
 
 const NGOManagement = () => {
   const { address, isConnected } = useAccount();
@@ -80,8 +80,8 @@ const NGOManagement = () => {
         
         setConnectionStatus({
           connected: true,
-          networkName: chainId === sonicBlaze.id ? 'Sonic Blaze Testnet' : `Unknown (${chainId})`,
-          error: chainId !== sonicBlaze.id ? 'Wrong network, please connect to Sonic Blaze Testnet' : null
+          networkName: chainId === sepolia.id ? 'Sepolia Testnet' : `Unknown (${chainId})`,
+          error: chainId !== sepolia.id ? 'Wrong network, please connect to Sepolia Testnet' : null
         });
       } catch (error) {
         console.error('Network connection error:', error);
@@ -210,8 +210,8 @@ const NGOManagement = () => {
       const hash = await walletClient.writeContract({
         address: CONTRACT_ADDRESSES.NGOAccessControl,
         abi: NGOAccessControlABI,
-        functionName: 'addNGO',
-        args: [ngoAddress],
+        functionName: 'grantRole',
+        args: [ngoAddress, 1], // 1 = Role.NGO
       });
 
       toast({
@@ -309,7 +309,7 @@ const NGOManagement = () => {
         <AlertDescription maxWidth="sm">
           {connectionStatus.error}
           <Text mt={2}>
-            Please make sure you're connected to the Sonic Blaze Testnet and try again.
+            Please make sure you're connected to the Sepolia Testnet and try again.
           </Text>
         </AlertDescription>
       </Alert>

@@ -15,49 +15,20 @@ import {
   HStack,
 } from '@chakra-ui/react';
 import { AddIcon } from '@chakra-ui/icons';
-import { useNGOAccessControl } from '../../hooks/useNGOAccessControl';
-import { useAccount, useConnect, useDisconnect } from 'wagmi';
-import { InjectedConnector } from 'wagmi/connectors/injected';
+import { useAdminAccessControl } from '../../hooks/useAdminAccessControl';
+import { useAccount } from 'wagmi';
 
 const NGOManagementPanel = () => {
   const [newNGOAddress, setNewNGOAddress] = useState('');
   const toast = useToast();
   const { address, isConnected } = useAccount();
-  const { connect } = useConnect({
-    connector: new InjectedConnector(),
-  });
-  const { disconnect } = useDisconnect();
   
   const {
     ngoList,
-    isLoadingNGOs,
-    checkAndRegisterNGO,
-    isAdding,
+    loading: isLoadingNGOs,
+    addNGO,
     isCorrectNetwork,
-    error: hookError,
-  } = useNGOAccessControl();
-
-  const handleConnect = async () => {
-    try {
-      await connect();
-    } catch (error) {
-      toast({
-        title: 'Connection Failed',
-        description: error.message,
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-  };
-
-  const handleDisconnect = async () => {
-    try {
-      await disconnect();
-    } catch (error) {
-      console.error('Error disconnecting:', error);
-    }
-  };
+  } = useAdminAccessControl();
 
   const handleAddNGO = async (e) => {
     e.preventDefault();
@@ -76,7 +47,7 @@ const NGOManagementPanel = () => {
     if (!isCorrectNetwork) {
       toast({
         title: 'Wrong Network',
-        description: 'Please switch to Sonic Blaze Testnet',
+        description: 'Please switch to Sepolia Testnet',
         status: 'warning',
         duration: 5000,
         isClosable: true,
@@ -96,25 +67,10 @@ const NGOManagementPanel = () => {
     }
 
     try {
-      const result = await checkAndRegisterNGO(newNGOAddress);
-      if (result.transactionHash) {
-        toast({
-          title: 'Transaction Submitted',
-          description: 'The NGO registration transaction has been submitted',
-          status: 'success',
-          duration: 5000,
-          isClosable: true,
-        });
-        setNewNGOAddress('');
-      }
+      await addNGO(newNGOAddress);
+      setNewNGOAddress('');
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to add NGO',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
+      console.error('Error adding NGO:', error);
     }
   };
 
@@ -134,8 +90,8 @@ const NGOManagementPanel = () => {
             <Alert status={isCorrectNetwork ? 'success' : 'warning'}>
               <AlertIcon />
               {isCorrectNetwork 
-                ? 'Connected to Sonic Blaze Testnet'
-                : 'Please switch to Sonic Blaze Testnet in MetaMask'}
+                ? 'Connected to Sepolia Testnet'
+                : 'Please switch to Sepolia Testnet in MetaMask'}
             </Alert>
           </VStack>
         </Box>
@@ -156,12 +112,6 @@ const NGOManagementPanel = () => {
                 ? `Connected: ${address}`
                 : 'Please connect your wallet'}
             </Alert>
-            <Button
-              onClick={isConnected ? handleDisconnect : handleConnect}
-              colorScheme={isConnected ? 'red' : 'blue'}
-            >
-              {isConnected ? 'Disconnect' : 'Connect MetaMask'}
-            </Button>
           </VStack>
         </Box>
 
@@ -182,12 +132,12 @@ const NGOManagementPanel = () => {
                     value={newNGOAddress}
                     onChange={(e) => setNewNGOAddress(e.target.value)}
                     placeholder="0x..."
-                    isDisabled={isAdding || !isCorrectNetwork || !isConnected}
+                    isDisabled={isLoadingNGOs || !isCorrectNetwork || !isConnected}
                   />
                   <Button
                     type="submit"
                     colorScheme="blue"
-                    isLoading={isAdding}
+                    isLoading={isLoadingNGOs}
                     leftIcon={<AddIcon />}
                     isDisabled={!isCorrectNetwork || !isConnected}
                   >
@@ -231,14 +181,6 @@ const NGOManagementPanel = () => {
             </VStack>
           )}
         </Box>
-
-        {/* Error Display */}
-        {hookError && (
-          <Alert status="error">
-            <AlertIcon />
-            {hookError.message || 'An error occurred'}
-          </Alert>
-        )}
       </VStack>
     </Box>
   );

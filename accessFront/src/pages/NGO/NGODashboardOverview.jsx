@@ -31,6 +31,7 @@ import {
 import { Link as RouterLink } from 'react-router-dom';
 import { useAccount, usePublicClient } from 'wagmi';
 import { NGOAccessControlABI, NGOAccessControlAddress } from '../../config/contracts';
+import { DEMO_CONTRACTS, NGO_REGISTRY_ABI } from '../../config/demo-contracts';
 import { useGrantManagement } from '../../hooks/useGrantManagement';
 
 const NGODashboardOverview = () => {
@@ -38,6 +39,7 @@ const NGODashboardOverview = () => {
   const publicClient = usePublicClient();
   const toast = useToast();
   const [ngos, setNGOs] = useState([]);
+  const [verifiedStatuses, setVerifiedStatuses] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const { grants, isLoadingGrants } = useGrantManagement();
 
@@ -47,30 +49,58 @@ const NGODashboardOverview = () => {
   const secondaryTextColor = useColorModeValue('gray.600', 'gray.300');
 
   useEffect(() => {
-    const fetchNGOs = async () => {
+    const fetchNGOData = async () => {
+      if (!publicClient) return;
       try {
-        const ngoList = await publicClient.readContract({
+        setIsLoading(true);
+        // Get all RoleGranted events to find NGOs
+        const logs = await publicClient.getLogs({
           address: NGOAccessControlAddress,
-          abi: NGOAccessControlABI,
-          functionName: 'getNGOs',
+          event: {
+            type: 'event',
+            name: 'RoleGranted',
+            inputs: [
+              { type: 'address', name: 'user', indexed: true },
+              { type: 'uint8', name: 'role' }
+            ]
+          },
+          fromBlock: 0n,
+          toBlock: 'latest'
         });
-        setNGOs(Array.isArray(ngoList) ? ngoList : []);
+        
+        // Filter unique addresses that were granted role 1 (NGO)
+        const ngoAddresses = [...new Set(logs
+          .filter(log => log.args.role === 1)
+          .map(log => log.args.user.toLowerCase()))];
+        
+        setNGOs(ngoAddresses);
+
+        // Fetch KRNL verification status for each NGO
+        const statusMap = {};
+        await Promise.all(ngoAddresses.map(async (ngo) => {
+          try {
+            const isVerified = await publicClient.readContract({
+              address: DEMO_CONTRACTS.NGORegistryDemo,
+              abi: NGO_REGISTRY_ABI,
+              functionName: 'isVerifiedNGO',
+              args: [ngo],
+            });
+            statusMap[ngo] = isVerified;
+          } catch (err) {
+            console.warn(`Could not fetch status for ${ngo}:`, err);
+            statusMap[ngo] = false;
+          }
+        }));
+        setVerifiedStatuses(statusMap);
       } catch (error) {
-        console.error('Error fetching NGOs:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to fetch NGO list',
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-        });
+        console.error('Error fetching NGO data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchNGOs();
-  }, [publicClient, toast]);
+    fetchNGOData();
+  }, [publicClient]);
 
   // Calculate grants and total funds for each NGO
   const ngoStats = ngos.map(ngo => {
@@ -91,7 +121,8 @@ const NGODashboardOverview = () => {
       address: ngo,
       grantCount: ngoGrants.length,
       totalFunds,
-      activeGrants: ngoGrants.filter(grant => grant.isActive).length
+      activeGrants: ngoGrants.filter(grant => grant.isActive).length,
+      isKrnlVerified: verifiedStatuses[ngo.toLowerCase()] || false
     };
   });
 
@@ -166,6 +197,7 @@ const NGODashboardOverview = () => {
                   <Thead>
                     <Tr>
                       <Th>NGO Address</Th>
+                      <Th>Status</Th>
                       <Th isNumeric>Total Grants</Th>
                       <Th isNumeric>Active Grants</Th>
                       <Th isNumeric>Total Funds</Th>
@@ -178,9 +210,14 @@ const NGODashboardOverview = () => {
                         <Td fontFamily="mono" fontSize="sm">
                           {`${ngo.address.slice(0, 6)}...${ngo.address.slice(-4)}`}
                         </Td>
+                        <Td>
+                          <Badge colorScheme={ngo.isKrnlVerified ? "green" : "gray"} variant="solid">
+                            {ngo.isKrnlVerified ? "KRNL Verified" : "Unverified"}
+                          </Badge>
+                        </Td>
                         <Td isNumeric>{ngo.grantCount}</Td>
                         <Td isNumeric>{ngo.activeGrants}</Td>
-                        <Td isNumeric>{ngo.totalFunds.toFixed(2)} SONIC</Td>
+                        <Td isNumeric>{ngo.totalFunds.toFixed(2)} ETH</Td>
                         <Td>
                           <Button
                             as={RouterLink}

@@ -1,17 +1,17 @@
+import { useContract } from '../context/ContractContext';
+
 export const useNGOAccessControl = () => {
+  const { userRole, isVerified, loading } = useContract();
+
   return {
-    isAuthorized: false,
-    isAdmin: false,
+    isAuthorized: userRole === 'NGO' || userRole === 'ADMIN',
+    isVerified,
+    isAdmin: userRole === 'ADMIN',
+    userRole,
     grantNGORole: async () => {},
     revokeNGORole: async () => {},
-    checkAuthorization: async () => false,
-    loading: false
+    checkAuthorization: async () => userRole === 'NGO' || userRole === 'ADMIN',
+    isLoadingAuthorization: loading
   };
 };
 
-export const useAdminAccessControl = () => {
-    return {
-        isAdmin: false,
-        loading: false
-    };
-};

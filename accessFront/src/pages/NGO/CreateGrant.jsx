@@ -20,8 +20,7 @@ import {
   AlertIcon,
 } from '@chakra-ui/react';
 import { useAccount } from 'wagmi';
-import { useGrantRegistry } from '../../hooks/useGrantRegistry';
-import { useNGOAccessControl } from '../../hooks/useNGOAccessControl';
+import { useGrantManagement } from '../../hooks/useGrantManagement';
 
 const CreateGrant = () => {
   const { address, isConnected } = useAccount();
@@ -34,47 +33,12 @@ const CreateGrant = () => {
   });
 
   const {
-    createNewGrant,
-    isCreating,
-    isCreateSuccess,
-    isCreateError,
-    createError,
-  } = useGrantRegistry();
+    createGrant,
+    loading: isCreating,
+    isNGO: isAuthorized,
+  } = useGrantManagement();
 
-  const { isAuthorized, isLoadingAuthorization } = useNGOAccessControl();
-
-  // Show success message
-  useEffect(() => {
-    if (isCreateSuccess) {
-      toast({
-        title: 'Grant Created',
-        description: 'Your grant has been successfully created',
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
-      // Reset form
-      setFormData({
-        title: '',
-        description: '',
-        amount: '',
-        deadline: '',
-      });
-    }
-  }, [isCreateSuccess, toast]);
-
-  // Show error message
-  useEffect(() => {
-    if (isCreateError) {
-      toast({
-        title: 'Error',
-        description: createError?.message || 'Failed to create grant',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-  }, [isCreateError, createError, toast]);
+  // No need for separate success/error effects as they are handled in the hook via toast
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -93,7 +57,7 @@ const CreateGrant = () => {
     if (!isAuthorized) {
       toast({
         title: 'Not Authorized',
-        description: 'Only authorized NGOs can create grants',
+        description: 'Only authorized NGOs and Admins can create grants',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -117,26 +81,29 @@ const CreateGrant = () => {
       }
 
       // Convert amount to wei (assuming amount is in ETH)
-      const amountInWei = BigInt(parseFloat(amount) * 1e18);
+      const amountInWei = BigInt(Math.floor(parseFloat(amount) * 1e18));
       
-      // Convert deadline to Unix timestamp
-      const deadlineTimestamp = Math.floor(new Date(deadline).getTime() / 1000);
+      // Calculate duration in seconds from now until deadline
+      const deadlineDate = new Date(deadline);
+      const now = new Date();
+      const durationSeconds = Math.max(0, Math.floor((deadlineDate.getTime() - now.getTime()) / 1000));
 
-      await createNewGrant(
+      await createGrant(
         title,
         description,
         amountInWei,
-        deadlineTimestamp
+        BigInt(durationSeconds)
       );
-    } catch (error) {
-      console.error('Error creating grant:', error);
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to create grant',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
+
+      // Reset form on submission (hook handles success toast)
+      setFormData({
+        title: '',
+        description: '',
+        amount: '',
+        deadline: '',
       });
+    } catch (error) {
+      console.error('Error in form submission:', error);
     }
   };
 

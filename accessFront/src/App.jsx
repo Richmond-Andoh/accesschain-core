@@ -31,6 +31,7 @@ import DisabilityOnboarding from './pages/Accessibility/DisabilityOnboarding';
 import AccessibilitySettings from './pages/Accessibility/AccessibilitySettings';
 import NGOManagement from './pages/Admin/NGOManagement';
 import DemoDashboard from './pages/Demo/DemoDashboard';
+import KRNLDemo from './pages/Demo/KRNLDemo';
 import StakingPage from './pages/Token/StakingPage';
 import NGODashboardOverview from './pages/NGO/NGODashboardOverview';
 
@@ -67,6 +68,7 @@ const App = () => {
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/donor-dashboard" element={<DonorDashboard />} />
                 <Route path="/demo" element={<DemoDashboard />} />
+                <Route path="/krnl-demo" element={<KRNLDemo />} />
                 
                 {/* NGO Routes - Protected */}
                 <Route path="/ngo-dashboard" element={

@@ -68,7 +68,7 @@ import {
 import { FaUsers, FaUser, FaFileContract, FaLock, FaHandHoldingUsd, FaUserShield } from 'react-icons/fa';
 import { useAccount, usePublicClient, useSwitchNetwork } from 'wagmi';
 import { formatEther } from 'viem';
-import { sonicBlaze } from '../../config/chains';
+import { sepolia } from 'viem/chains';
 import { CONTRACT_ADDRESSES } from '../../config/contracts';
 import useAdminAccessControl from '../../hooks/useAdminAccessControl';
 import { useGrantManagement } from '../../hooks/useGrantManagement';
@@ -315,9 +315,9 @@ const AdminDashboard = () => {
               <Button
                 size="sm"
                 colorScheme="blue"
-                onClick={() => switchNetwork({ chainId: sonicBlaze.id })}
+                onClick={() => switchNetwork({ chainId: sepolia.id })}
               >
-                Switch to Sonic Blaze
+                Switch to Sepolia
               </Button>
             )}
             </HStack>
@@ -380,7 +380,7 @@ const AdminDashboard = () => {
                 <Text>Total Funding</Text>
               </HStack>
             </StatLabel>
-            <StatNumber fontSize="3xl">{totalFunds} SONIC</StatNumber>
+            <StatNumber fontSize="3xl">{totalFunds} ETH</StatNumber>
             <StatHelpText>
               Across all grants
             </StatHelpText>
@@ -532,7 +532,7 @@ const AdminDashboard = () => {
                                         icon={<ExternalLinkIcon />}
                                         aria-label="View on Explorer"
                                         as="a"
-                                        href={`https://blazescan.io/address/${ngo}`}
+                                        href={`https://sepolia.etherscan.io/address/${ngo}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                       />
@@ -587,7 +587,7 @@ const AdminDashboard = () => {
                               <Td fontFamily="mono" fontSize="sm">
                                 {grant.ngo.substring(0, 6)}...{grant.ngo.substring(grant.ngo.length - 4)}
                               </Td>
-                              <Td isNumeric>{formatEther(BigInt(grant.amount))} SONIC</Td>
+                              <Td isNumeric>{formatEther(BigInt(grant.amount))} ETH</Td>
                               <Td>{new Date(grant.deadline * 1000).toLocaleDateString()}</Td>
                               <Td>
                                 <Badge colorScheme={grant.isActive ? "green" : "red"}>
@@ -611,7 +611,7 @@ const AdminDashboard = () => {
                                       icon={<ExternalLinkIcon />}
                                       aria-label="View on Explorer"
                                       as="a"
-                                      href={`https://blazescan.io/address/${CONTRACT_ADDRESSES.accessGrant}`}
+                                      href={`https://sepolia.etherscan.io/address/${CONTRACT_ADDRESSES.AccessGrant}`}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                     />
@@ -661,10 +661,10 @@ const AdminDashboard = () => {
                             icon={<ExternalLinkIcon />}
                             aria-label="View on Explorer"
                             as="a"
-                            href={`https://blazescan.io/address/${CONTRACT_ADDRESSES.NGOAccessControl}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          />
+                             href={`https://sepolia.etherscan.io/address/${CONTRACT_ADDRESSES.NGOAccessControl}`}
+                             target="_blank"
+                             rel="noopener noreferrer"
+                           />
                         </HStack>
                       </Box>
                       
@@ -672,17 +672,17 @@ const AdminDashboard = () => {
                         <Text fontWeight="bold" mb={1}>Grant Registry:</Text>
                         <HStack>
                           <Text fontSize="sm" fontFamily="mono" color={textColor}>
-                            {CONTRACT_ADDRESSES.accessGrant}
+                            {CONTRACT_ADDRESSES.AccessGrant}
                           </Text>
                           <IconButton
                             size="xs"
                             icon={<ExternalLinkIcon />}
                             aria-label="View on Explorer"
                             as="a"
-                            href={`https://blazescan.io/address/${CONTRACT_ADDRESSES.accessGrant}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          />
+                             href={`https://sepolia.etherscan.io/address/${CONTRACT_ADDRESSES.AccessGrant}`}
+                             target="_blank"
+                             rel="noopener noreferrer"
+                           />
                         </HStack>
                       </Box>
                       
@@ -690,18 +690,18 @@ const AdminDashboard = () => {
                         <Text fontWeight="bold" mb={1}>Access Request Registry:</Text>
                         <HStack>
                           <Text fontSize="sm" fontFamily="mono" color={textColor}>
-                            {CONTRACT_ADDRESSES.requestRegistry || "Not configured"}
+                            {CONTRACT_ADDRESSES.RequestRegistry || "Not configured"}
                           </Text>
-                          {CONTRACT_ADDRESSES.requestRegistry && (
+                          {CONTRACT_ADDRESSES.RequestRegistry && (
                             <IconButton
                               size="xs"
                               icon={<ExternalLinkIcon />}
                               aria-label="View on Explorer"
                               as="a"
-                              href={`https://blazescan.io/address/${CONTRACT_ADDRESSES.requestRegistry}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            />
+                               href={`https://sepolia.etherscan.io/address/${CONTRACT_ADDRESSES.RequestRegistry}`}
+                               target="_blank"
+                               rel="noopener noreferrer"
+                             />
                           )}
                         </HStack>
                       </Box>
@@ -741,10 +741,10 @@ const AdminDashboard = () => {
                         <Button
                           colorScheme="blue"
                           leftIcon={<InfoIcon />}
-                          onClick={() => switchNetwork({ chainId: sonicBlaze.id })}
+                          onClick={() => switchNetwork({ chainId: sepolia.id })}
                           size="sm"
                         >
-                          Switch to Sonic Blaze
+                          Switch to Sepolia
                         </Button>
                       )}
                       

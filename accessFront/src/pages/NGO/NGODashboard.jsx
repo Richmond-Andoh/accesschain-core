@@ -64,7 +64,7 @@ const NGODashboard = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const { address, isConnected } = useAccount();
-  const { isAuthorized, isLoadingAuthorization } = useNGOAccessControl();
+  const { isAuthorized, isLoadingAuthorization, userRole } = useNGOAccessControl();
   const { ngoAddress } = useParams();
   const location = useLocation();
   const publicClient = usePublicClient();
@@ -220,7 +220,7 @@ const NGODashboard = () => {
     if (isConnected && !isCorrectNetwork) {
       toast({
         title: 'Wrong Network',
-        description: 'Please connect to the Sonic Blaze Testnet to interact with the app.',
+        description: 'Please connect to the Ethereum Sepolia Testnet.',
         status: 'warning',
         duration: 5000,
         isClosable: true,
@@ -321,7 +321,7 @@ const NGODashboard = () => {
               <Stat>
                 <StatLabel>Total Funding</StatLabel>
                 <StatNumber>
-                  {totalFunds} SONIC
+                  {totalFunds} ETH
                 </StatNumber>
                 <StatHelpText>
                   <HStack>
@@ -345,7 +345,7 @@ const NGODashboard = () => {
                 <StatHelpText>
                   <HStack>
                     <Icon as={FaCheckCircle} color="green.500" />
-                    <Text>NGO is authorized</Text>
+                    <Text>Authorized {userRole === 'ADMIN' ? 'Admin' : 'NGO'}</Text>
                   </HStack>
                 </StatHelpText>
               </Stat>
@@ -383,7 +383,7 @@ const NGODashboard = () => {
                     {ngoGrants.map((grant) => (
                       <Tr key={grant.id}>
                         <Td fontWeight="medium">{grant.title}</Td>
-                        <Td isNumeric>{formatEther(BigInt(grant.amount))} SONIC</Td>
+                        <Td isNumeric>{formatEther(BigInt(grant.amount))} ETH</Td>
                         <Td>{new Date(grant.deadline * 1000).toLocaleDateString()}</Td>
                         <Td>
                           <Badge colorScheme={grant.isActive ? "green" : "red"}>

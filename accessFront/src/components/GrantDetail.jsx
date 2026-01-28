@@ -7,6 +7,7 @@ import { CONTRACT_ADDRESSES, CONTRACT_ABIS } from '../config/contracts';
 import { sonicBlaze } from '../config/chains';
 import VoteSimulation from './VoteSimulation';
 import TokenBalanceDisplay from './TokenBalanceDisplay';
+import { DEMO_CONTRACTS, NGO_REGISTRY_ABI } from '../config/demo-contracts';
 import {
   Box,
   Button,
@@ -24,6 +25,7 @@ import {
   Icon,
 } from '@chakra-ui/react';
 import { FaFileAlt, FaUsers, FaCheck, FaTimes, FaEye } from 'react-icons/fa';
+import { MdSecurity } from 'react-icons/md';
 
 const GrantDetail = () => {
   const { grantId } = useParams();
@@ -40,6 +42,7 @@ const GrantDetail = () => {
   const [isGrantCreator, setIsGrantCreator] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
   const [userApplication, setUserApplication] = useState(null);
+  const [isNGOVerified, setIsNGOVerified] = useState(false);
 
   const bgColor = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
@@ -48,7 +51,7 @@ const GrantDetail = () => {
   const readGrantContract = async (functionName, args = []) => {
     try {
       return await publicClient.readContract({
-        address: CONTRACT_ADDRESSES.accessGrant,
+        address: CONTRACT_ADDRESSES.AccessGrant,
         abi: CONTRACT_ABIS.accessGrant,
         functionName,
         args
@@ -62,7 +65,7 @@ const GrantDetail = () => {
   const readNGOContract = async (functionName, args = []) => {
     try {
       return await publicClient.readContract({
-        address: CONTRACT_ADDRESSES.ngoAccessControl,
+        address: CONTRACT_ADDRESSES.NGOAccessControl,
         abi: CONTRACT_ABIS.ngoAccessControl,
         functionName,
         args
@@ -78,11 +81,11 @@ const GrantDetail = () => {
       if (!walletClient) throw new Error("Wallet not connected");
       
       const hash = await walletClient.writeContract({
-        address: CONTRACT_ADDRESSES.accessGrant,
+        address: CONTRACT_ADDRESSES.AccessGrant,
         abi: CONTRACT_ABIS.accessGrant,
         functionName,
         args,
-        chain: sonicBlaze,
+        chain: sepolia, // Using sepolia from viem/chains (imported in main.jsx potentially, but here it was sonicBlaze)
         account: address
       });
       
@@ -132,22 +135,42 @@ const GrantDetail = () => {
           setIsNGO(ngoStatus);
           setIsGrantCreator(foundGrant.ngo.toLowerCase() === address.toLowerCase());
         }
+
+        // Fetch KRNL verification status for the NGO
+        try {
+          const isVerified = await publicClient.readContract({
+            address: DEMO_CONTRACTS.NGORegistryDemo,
+            abi: NGO_REGISTRY_ABI,
+            functionName: 'isVerifiedNGO',
+            args: [foundGrant.ngo],
+          });
+          setIsNGOVerified(isVerified);
+        } catch (err) {
+          console.warn(`Could not fetch KRNL status for ${foundGrant.ngo}:`, err);
+          setIsNGOVerified(false);
+        }
+
+        // Fetch KRNL verification status for the NGO
+        // Check if current user has applied
+        if (address) {
+          const apps = await readGrantContract('getApplications', [grantIdNumber]);
+          const userApp = apps.find(app => app.applicant.toLowerCase() === address.toLowerCase());
+          if (userApp) {
+            setHasApplied(true);
+            setUserApplication({
+                approved: userApp.approved,
+                rejected: userApp.rejected
+            });
+          }
+        }
         
-        // This part would be more complex in a real application
-        // For demonstration, we'll use a simplified approach
-        // In a real app, you would need to query events or use a subgraph
-        
-        // Check if current user has applied (this is a stub - actual implementation would differ)
-        // We're mocking this since we can't easily query all applications from the contract
-        setHasApplied(false);
-        setUserApplication(null);
-        
-        // If the user is the grant creator, fetch applications (mock for now)
+        // If the user is the grant creator, fetch applications
         if (foundGrant.ngo.toLowerCase() === address?.toLowerCase()) {
-          // In a real implementation, you would query applications from events or a subgraph
-          setApplications([
-            // These would come from contract events in a real implementation
-          ]);
+           const apps = await readGrantContract('getApplications', [grantIdNumber]);
+           setApplications(apps.map((app, index) => ({
+               ...app,
+               index // store index for approval/rejection
+           })));
         }
       } catch (error) {
         console.error('Error fetching grant details:', error);
@@ -304,7 +327,21 @@ const GrantDetail = () => {
                 {grant.isActive ? 'Active' : 'Closed'}
               </Badge>
             </HStack>
-            <Text color="gray.500">Posted by: {grant.ngo}</Text>
+            <HStack justify="space-between">
+              <Text color="gray.500">Posted by: {grant.ngo}</Text>
+              {isNGOVerified && (
+                <Badge 
+                  colorScheme="blue" 
+                  variant="solid" 
+                  px={3} 
+                  py={1} 
+                  borderRadius="full"
+                  leftIcon={<Icon as={MdSecurity} />}
+                >
+                  KRNL Verified NGO
+                </Badge>
+              )}
+            </HStack>
           </VStack>
         </CardHeader>
 
@@ -318,7 +355,7 @@ const GrantDetail = () => {
             <HStack spacing={8}>
               <Box>
                 <Text fontWeight="bold">Amount</Text>
-                <Text>{grant.amount} SONIC</Text>
+                <Text>{grant.amount} ETH</Text>
               </Box>
               <Box>
                 <Text fontWeight="bold">Deadline</Text>

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatEther } from 'viem';
+import { usePublicClient } from 'wagmi';
+import { DEMO_CONTRACTS, NGO_REGISTRY_ABI } from '../config/demo-contracts';
 import { 
   Box, 
   Container, 
@@ -29,6 +31,7 @@ import {
   Icon
 } from '@chakra-ui/react';
 import { AddIcon, TimeIcon, InfoIcon, CheckIcon, ChevronRightIcon } from '@chakra-ui/icons';
+import { MdSecurity } from 'react-icons/md';
 import { useGrantManagement } from '../hooks/useGrantManagement';
 
 const GrantListing = () => {
@@ -50,7 +53,42 @@ const GrantListing = () => {
     approveApplication,
     completeMilestone,
     refetchGrants,
+    address
   } = useGrantManagement();
+  
+  const publicClient = usePublicClient();
+  const [verifiedStatuses, setVerifiedStatuses] = useState({});
+  
+  // Fetch verification status for all unique grant owners
+  React.useEffect(() => {
+    const fetchStatuses = async () => {
+      if (!grants || grants.length === 0 || !publicClient) return;
+      
+      const uniqueOwners = [...new Set(grants.map(g => g.ngo?.toLowerCase()).filter(Boolean))];
+      const statusMap = { ...verifiedStatuses };
+      
+      await Promise.all(uniqueOwners.map(async (owner) => {
+        if (statusMap[owner] !== undefined) return;
+        
+        try {
+          const isVerified = await publicClient.readContract({
+            address: DEMO_CONTRACTS.NGORegistryDemo,
+            abi: NGO_REGISTRY_ABI,
+            functionName: 'isVerifiedNGO',
+            args: [owner],
+          });
+          statusMap[owner] = isVerified;
+        } catch (err) {
+          console.warn(`Could not fetch KRNL status for ${owner}:`, err);
+          statusMap[owner] = false;
+        }
+      }));
+      
+      setVerifiedStatuses(statusMap);
+    };
+    
+    fetchStatuses();
+  }, [grants, publicClient]);
   
   // Color mode values for UI
   const cardBg = useColorModeValue('white', 'gray.700');
@@ -208,7 +246,8 @@ const GrantListing = () => {
   // Grant Card Component
   const GrantCard = ({ grant }) => {
     const isExpired = grant.deadline && Number(grant.deadline) < Math.floor(Date.now() / 1000);
-    const isOwnedByCurrentUser = grant.owner && grant.owner.toLowerCase() === grant.currentUser?.toLowerCase();
+    const isOwnedByCurrentUser = grant.ngo && address && grant.ngo.toLowerCase() === address.toLowerCase();
+    const isKrnlVerified = grant.ngo && verifiedStatuses[grant.ngo.toLowerCase()];
     
     return (
       <Card 
@@ -248,8 +287,21 @@ const GrantListing = () => {
                 )}
                 
                 <Badge colorScheme="blue" variant="outline" px={2} py={0.5} borderRadius="full">
-                  {formatEther(grant.totalAmount || '0')} TOKENS
+                  {formatEther(grant.amount || 0n)} ETH
                 </Badge>
+
+                {isKrnlVerified && (
+                  <Badge 
+                    colorScheme="blue" 
+                    variant="solid" 
+                    px={2} 
+                    py={0.5} 
+                    borderRadius="full"
+                    leftIcon={<Icon as={MdSecurity} />}
+                  >
+                    KRNL Verified
+                  </Badge>
+                )}
               </Flex>
             </Box>
             

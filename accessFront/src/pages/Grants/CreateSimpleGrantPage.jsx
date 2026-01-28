@@ -28,23 +28,21 @@ import {
 } from '@chakra-ui/react';
 import { WarningIcon, InfoIcon, ArrowBackIcon, CheckIcon } from '@chakra-ui/icons';
 import { CONTRACT_ADDRESSES, CONTRACT_ABIS } from '../../config/contracts';
-import { sonicBlaze } from '../../config/chains';
+import { sepolia } from 'viem/chains';
+import { useGrantManagement } from '../../hooks/useGrantManagement';
+import { useNGOAccessControl } from '../../hooks/useNGOAccessControl';
 
 const CreateSimpleGrantPage = () => {
   const navigate = useNavigate();
   const { address, isConnected } = useAccount();
-  const { data: walletClient } = useWalletClient();
-  const publicClient = usePublicClient();
-  const chainId = useChainId();
   const toast = useToast();
   
-  const [loading, setLoading] = useState(false);
-  const [isAuthorizedNGO, setIsAuthorizedNGO] = useState(false);
-  const [checking, setChecking] = useState(true);
-  const [networkStatus, setNetworkStatus] = useState({
-    isCorrectNetwork: false,
-    networkName: ''
-  });
+  const { 
+    createGrant, 
+    loading: isCreating, 
+    isNGO: isAuthorizedNGO,
+    isCorrectNetwork 
+  } = useGrantManagement();
   
   const [formData, setFormData] = useState({
     title: '',
@@ -57,63 +55,6 @@ const CreateSimpleGrantPage = () => {
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
-
-  // Check if user is an authorized NGO
-  useEffect(() => {
-    const checkNGOStatus = async () => {
-      if (!isConnected || !address || !publicClient) return;
-      
-      try {
-        setChecking(true);
-        const ngoStatus = await publicClient.readContract({
-          address: CONTRACT_ADDRESSES.ngoAccessControl,
-          abi: CONTRACT_ABIS.ngoAccessControl,
-          functionName: 'isAuthorizedNGO',
-          args: [address]
-        });
-        
-        setIsAuthorizedNGO(ngoStatus);
-      } catch (error) {
-        console.error('Error checking NGO status:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to check NGO authorization status',
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-        });
-      } finally {
-        setChecking(false);
-      }
-    };
-    
-    checkNGOStatus();
-  }, [address, isConnected, publicClient, toast]);
-
-  // Check network status
-  useEffect(() => {
-    const checkNetwork = async () => {
-      if (!publicClient) return;
-      
-      try {
-        const currentChainId = await publicClient.getChainId();
-        setNetworkStatus({
-          isCorrectNetwork: currentChainId === sonicBlaze.id,
-          networkName: currentChainId === sonicBlaze.id ? 'Sonic Blaze Testnet' : `Unknown (${currentChainId})`
-        });
-        
-        console.log('Network check:', { 
-          currentChainId, 
-          expectedChainId: sonicBlaze.id, 
-          isCorrect: currentChainId === sonicBlaze.id 
-        });
-      } catch (error) {
-        console.error('Error checking network:', error);
-      }
-    };
-    
-    checkNetwork();
-  }, [publicClient, chainId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -137,10 +78,10 @@ const CreateSimpleGrantPage = () => {
       return;
     }
     
-    if (!networkStatus.isCorrectNetwork) {
+    if (!isCorrectNetwork) {
       toast({
         title: 'Wrong Network',
-        description: 'Please switch to Sonic Blaze Testnet',
+        description: 'Please switch to Sepolia Testnet',
         status: 'warning',
         duration: 5000,
         isClosable: true,
@@ -151,18 +92,7 @@ const CreateSimpleGrantPage = () => {
     if (!isAuthorizedNGO) {
       toast({
         title: 'Error',
-        description: 'Only authorized NGOs can create grants',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
-      return;
-    }
-    
-    if (!walletClient) {
-      toast({
-        title: 'Error',
-        description: 'Wallet client not available',
+        description: 'Only authorized NGOs and Admins can create grants',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -216,66 +146,20 @@ const CreateSimpleGrantPage = () => {
     }
     
     try {
-      setLoading(true);
-      
-      // Convert deadline to Unix timestamp
+      // Calculate duration in seconds from now until deadline
       const deadlineDate = new Date(formData.deadline);
-      const deadlineTimestamp = Math.floor(deadlineDate.getTime() / 1000);
+      const now = new Date();
+      const durationSeconds = Math.max(0, Math.floor((deadlineDate.getTime() - now.getTime()) / 1000));
       
       // Convert amount to wei
-      const amountInWei = ethers.parseEther(formData.amount.toString());
+      const amountInWei = BigInt(Math.floor(parseFloat(formData.amount) * 1e18));
       
-      // Create grant
-      toast({
-        title: 'Processing',
-        description: 'Submitting transaction. Please confirm in your wallet...',
-        status: 'info',
-        duration: null,
-        isClosable: false,
-      });
-      
-      console.log('Creating grant with params:', {
-        title: formData.title.trim(),
-        description: formData.description.trim(),
-        amount: amountInWei.toString(),
-        deadline: BigInt(deadlineTimestamp).toString(),
-        chainId: sonicBlaze.id,
-        account: address,
-        contractAddress: CONTRACT_ADDRESSES.accessGrant,
-        isAuthorizedNGO,
-        connectedAddress: address
-      });
-      
-      // Prepare transaction parameters with chain specified
-      const hash = await walletClient.writeContract({
-        address: CONTRACT_ADDRESSES.accessGrant,
-        abi: CONTRACT_ABIS.accessGrant,
-        functionName: 'createGrant',
-        args: [
-          formData.title.trim(),
-          formData.description.trim(),
-          amountInWei,
-          BigInt(deadlineTimestamp)
-        ],
-        chain: sonicBlaze,
-        account: address
-      });
-      
-      console.log('Grant creation transaction submitted:', {
-        hash,
-        account: address,
-        contractAddress: CONTRACT_ADDRESSES.accessGrant
-      });
-      
-      toast.closeAll(); // Close any existing toasts
-      
-      toast({
-        title: 'Success',
-        description: 'Grant creation transaction submitted!',
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
+      await createGrant(
+        formData.title.trim(),
+        formData.description.trim(),
+        amountInWei,
+        BigInt(durationSeconds)
+      );
       
       // Reset form
       setFormData({
@@ -285,33 +169,12 @@ const CreateSimpleGrantPage = () => {
         deadline: ''
       });
       
-      // Navigate to grants page after a short delay
+      // Navigate to grants page after submission (hook handles toast)
       setTimeout(() => {
         navigate('/grants');
       }, 2000);
     } catch (error) {
-      console.error('Error creating grant:', error);
-      
-      toast.closeAll(); // Close any existing toasts
-      
-      // Extract meaningful error messages
-      let errorMessage = 'Failed to create grant';
-      
-      if (error.message?.includes('user rejected')) {
-        errorMessage = 'Transaction was rejected in your wallet';
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
-    } finally {
-      setLoading(false);
+      console.error('Error in form submission:', error);
     }
   };
 
@@ -440,7 +303,7 @@ const CreateSimpleGrantPage = () => {
               <Box flex="1">
                 <AlertTitle>Wrong Network</AlertTitle>
                 <AlertDescription display="block">
-                  Please switch to Sonic Blaze Testnet to create grants. Current network: {networkStatus.networkName}
+                  Please switch to Sepolia Testnet to create grants. Current network: {networkStatus.networkName}
                 </AlertDescription>
               </Box>
             </Alert>
