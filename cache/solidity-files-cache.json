@@ -1,0 +1,155 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "/home/richieandoh/CascadeProjects/accesschain-core/contracts/KRNLVerifier.sol": {
+      "lastModificationDate": 1769616119636,
+      "contentHash": "efcfec9bd7d5c450b8e48214e5e72c87",
+      "sourceName": "contracts/KRNLVerifier.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "KRNLVerifier"
+      ]
+    },
+    "/home/richieandoh/CascadeProjects/accesschain-core/contracts/NGORegistryDemo.sol": {
+      "lastModificationDate": 1769624080686,
+      "contentHash": "52a0e5be2a31b972e5ad05755094a10f",
+      "sourceName": "contracts/NGORegistryDemo.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./KRNLVerifier.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "NGORegistryDemo"
+      ]
+    },
+    "/home/richieandoh/CascadeProjects/accesschain-core/contracts/AccessGrant.sol": {
+      "lastModificationDate": 1769635071957,
+      "contentHash": "0cb293f05546cfd6c8cffada79600f46",
+      "sourceName": "contracts/AccessGrant.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./NGOAccessControl.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "AccessGrant"
+      ]
+    },
+    "/home/richieandoh/CascadeProjects/accesschain-core/contracts/NGOAccessControl.sol": {
+      "lastModificationDate": 1769635058554,
+      "contentHash": "ce1c94a13edc0214cf5d36d65451246c",
+      "sourceName": "contracts/NGOAccessControl.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./NGORegistryDemo.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "NGOAccessControl"
+      ]
+    }
+  }
+}

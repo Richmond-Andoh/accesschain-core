@@ -1,0 +1,13 @@
+{
+  "network": "sepolia",
+  "chainId": "11155111",
+  "deployer": "0x5e2A1E3FBAe98c4b27858F3F58DF5b44Af992FBB",
+  "contracts": {
+    "KRNLVerifier": "0xf18503592c2Fa7a7300ca01B5Af20439Ab1AB2b8",
+    "NGORegistryDemo": "0x02571282492cfE0aaCDB87be2B1f940C59a4F224",
+    "NGOAccessControl": "0x8C226087944Cf3e8dc1bECFC5cC7BA96636cB56B",
+    "AccessGrant": "0xd70C6d6164a81C6221a2083787B7Cd787Fc9C0d7"
+  },
+  "deployedAt": "2026-01-28T18:15:12.657Z",
+  "lastDeployedAt": "2026-01-28T21:23:38.061Z"
+}

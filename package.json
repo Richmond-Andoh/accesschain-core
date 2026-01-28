@@ -1,0 +1,20 @@
+{
+  "name": "accesschain-contracts",
+  "version": "1.0.0",
+  "description": "AccessChain Smart Contracts with KRNL Integration",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:demo": "hardhat run scripts/deploy-demo.js --network sepolia",
+    "deploy:local": "hardhat run scripts/deploy-demo.js --network localhost"
+  },
+  "keywords": ["blockchain", "grants", "disability", "krnl"],
+  "author": "AccessChain Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.0",
+    "dotenv": "^16.3.1"
+  }
+}
