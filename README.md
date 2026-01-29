@@ -8,23 +8,6 @@
 npm install
 ```
 
-### 2. Set Up Environment
-
-```bash
-# Copy example env file
-cp .env.example .env
-
-# Edit .env and add:
-# - Your wallet private key
-# - KRNL workspace ID and API key
-```
-
-### 3. Compile Contracts
-
-```bash
-npm run compile
-```
-
 ### 4. Deploy to Sonic Testnet
 
 ```bash
