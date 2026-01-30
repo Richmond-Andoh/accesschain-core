@@ -90,14 +90,6 @@ After deployment, verify on Sonic Explorer:
 npx hardhat verify --network sonicTestnet <CONTRACT_ADDRESS>
 ```
 
-## 🌐 Networks
-
-- **Ethereum Sepolia Testnet**
-  - RPC: https://rpc.sepolia.org
-  - Chain ID: 11155111
-  - Explorer: https://sepolia.etherscan.io
-  - Faucet: https://sepoliafaucet.com
-
 ## 📖 Resources
 
 - [KRNL Studio](https://krnl.xyz)
