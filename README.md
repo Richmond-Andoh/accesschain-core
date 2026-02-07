@@ -82,9 +82,6 @@ npx hardhat node
 npm run deploy:local
 ```
 
-### Verify Contracts
-
-After deployment, verify on Sonic Explorer:
 
 ```bash
 npx hardhat verify --network sonicTestnet <CONTRACT_ADDRESS>
