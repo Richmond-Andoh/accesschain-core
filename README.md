@@ -72,15 +72,7 @@ npm test
 npm run compile
 ```
 
-### Deploy Locally
 
-```bash
-# Terminal 1: Start local node
-npx hardhat node
-
-# Terminal 2: Deploy
-npm run deploy:local
-```
 
 
 ```bash
