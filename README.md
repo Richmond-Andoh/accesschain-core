@@ -8,10 +8,6 @@
 npm install
 ```
 
-### 4. Deploy to Sonic Testnet
-
-```bash
-npm run deploy:demo
 ```
 
 ## 📁 Project Structure
